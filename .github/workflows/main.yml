@@ -1,0 +1,43 @@
+
+name: Build IT Map
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Extract source ZIP
+        run: |
+          mkdir source
+          unzip -q ITMap-Source-Fixed.zip -d source
+
+      - name: Locate Gradle project
+        run: |
+          find source -name build.gradle -o -name build.gradle.kts
+
+      - name: Build IT Map
+        run: |
+          cd source
+          gradle build --no-daemon
+
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: ITMap-JAR
+          path: source/**/build/libs/*.jar
+          if-no-files-found: error
